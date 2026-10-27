@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Evaluación Alicorp | Matriz{% endblock %}
+{% block content %}
+<section class="survey-shell survey-shell--alicorp matrix-shell">
+<header class="survey-head"><div><span class="survey-kicker">EVALUACIÓN ALICORP · 55 PUNTOS</span><h1>Matriz de evaluación de analistas</h1>
+    
+    <div class="escala-evaluacion escala-evaluacion--horizontal">
+   
+        <p><strong>¿Cómo realizar la evaluación?</strong></p>
+        <p>
+            Evalúa a cada analista según la frecuencia con la que demuestra cada competencia.
+            Selecciona un valor del 1 al 5 por cada pregunta.
+        </p>
+
+        <div class="escala-horizontal">
+            <div class="escala-item">
+                <span class="escala-numero">1</span>
+                <span class="escala-titulo">Nunca</span>
+                <small>No demuestra esta competencia.</small>
+            </div>
+
+            <div class="escala-item">
+                <span class="escala-numero">2</span>
+                <span class="escala-titulo">Pocas veces</span>
+                <small>La demuestra en contadas ocasiones.</small>
+            </div>
+
+            <div class="escala-item">
+                <span class="escala-numero">3</span>
+                <span class="escala-titulo">A veces</span>
+                <small>La demuestra de manera irregular.</small>
+            </div>
+
+            <div class="escala-item">
+                <span class="escala-numero">4</span>
+                <span class="escala-titulo">Casi siempre</span>
+                <small>La demuestra habitualmente.</small>
+            </div>
+
+            <div class="escala-item">
+                <span class="escala-numero">5</span>
+                <span class="escala-titulo">Siempre</span>
+                <small>La demuestra de manera constante.</small>
+            </div>
+        </div>
+    </div>
+</header>
+<button type="button" class="btn-ver-reportes"
+        onclick="abrirReportes()">
+    Ver reportes
+</button>
+<form method="post" class="survey-form" id="matrix-form">
+<div class="survey-setup"><label><span>Periodo</span><input type="month" name="periodo" value="{{ periodo }}" readonly required></label></div>
+<div class="matrix-help"><strong>Evalúa únicamente a los analistas que correspondan.</strong> Puedes desplazarte horizontalmente para ver todas las columnas. Los comentarios son opcionales.</div>
+<div class="matrix-scroll"><table class="matrix-table"><thead><tr><th class="matrix-person">Analista</th><th class="matrix-area">Área / canal</th><th><span class="matrix-question-number">P1 · 14 pts</span><span>¿El analista envia / publica los reportes / solicitudes a tiempo?</span></th><th><span class="matrix-question-number">P2 · 9 pts</span><span>¿El analista participa en reuniones CLAVES con el cliente?</span></th><th><span class="matrix-question-number">P3 · 13 pts</span><span>¿El analista atiende y resuelve las incidencias levantadas a tiempo?</span></th><th><span class="matrix-question-number">P4 · 10 pts</span><span>¿El analista registró inconsistencia en el/los reporte a cargo del analista?</span></th><th><span class="matrix-question-number">P5 · 9 pts</span><span>¿El analista aplica soluciones Innovadora en el/los reporte/KPI's a su cargo?</span></th><th>Comentario</th></tr></thead><tbody>{% for a in analistas %}<tr><th class="matrix-person">{{ a.nombre }}</th><td class="matrix-area">{{ a.canal }}</td><td><div class="matrix-options" role="group" aria-label="publica_reportes_tiempo para {{ a.nombre }}">{% for v in range(1, 6) %}<label title="{{ ['Nunca','Pocas veces','A veces','Casi siempre','Siempre'][v-1] }}"><input type="radio" name="a_{{ a.id }}_publica_reportes_tiempo" value="{{ v }}"><span>{{ v }}</span></label>{% endfor %}</div></td><td><div class="matrix-options" role="group" aria-label="participa_reuniones para {{ a.nombre }}">{% for v in range(1, 6) %}<label title="{{ ['Nunca','Pocas veces','A veces','Casi siempre','Siempre'][v-1] }}"><input type="radio" name="a_{{ a.id }}_participa_reuniones" value="{{ v }}"><span>{{ v }}</span></label>{% endfor %}</div></td><td><div class="matrix-options" role="group" aria-label="resuelve_incidencias_tiempo para {{ a.nombre }}">{% for v in range(1, 6) %}<label title="{{ ['Nunca','Pocas veces','A veces','Casi siempre','Siempre'][v-1] }}"><input type="radio" name="a_{{ a.id }}_resuelve_incidencias_tiempo" value="{{ v }}"><span>{{ v }}</span></label>{% endfor %}</div></td><td><div class="matrix-options" role="group" aria-label="registra_inconsistencias para {{ a.nombre }}">{% for v in range(1, 6) %}<label title="{{ ['Nunca','Pocas veces','A veces','Casi siempre','Siempre'][v-1] }}"><input type="radio" name="a_{{ a.id }}_registra_inconsistencias" value="{{ v }}"><span>{{ v }}</span></label>{% endfor %}</div></td><td><div class="matrix-options" role="group" aria-label="propone_soluciones para {{ a.nombre }}">{% for v in range(1, 6) %}<label title="{{ ['Nunca','Pocas veces','A veces','Casi siempre','Siempre'][v-1] }}"><input type="radio" name="a_{{ a.id }}_propone_soluciones" value="{{ v }}"><span>{{ v }}</span></label>{% endfor %}</div></td><td><textarea name="comentario_{{ a.id }}" maxlength="800" rows="2" placeholder="Observación opcional"></textarea></td></tr>{% endfor %}</tbody></table></div>
+<div class="enterprise-progress" data-evaluation-progress><div class="enterprise-progress__meta"><span><strong>Progreso de evaluación</strong><small>Completa las 5 preguntas de cada analista que desees evaluar.</small></span><b data-progress-label>0 %</b></div><div class="enterprise-progress__track"><span data-progress-bar></span></div><div class="enterprise-progress__count" data-progress-count>Preparando evaluación…</div></div>
+<div class="survey-submit">
+
+    <button class="primary survey-submit__button" type="submit">Guardar Encuesta</button>
+</div>
+
+</form>
+</section>
+
+<script>
+document.addEventListener("change", function(event) {
+    if (
+        event.target.matches(
+            '.matrix-shell input[type="radio"]'
+        )
+    ) {
+        requestAnimationFrame(function() {
+            window.scrollTo({
+                left: 0,
+                top: window.scrollY,
+                behavior: "instant"
+            });
+        });
+    }
+});
+</script>
+
+<div id="modal-reportes" class="modal-reportes" hidden>
+    <div class="reportes-contenido">
+        <button type="button"
+                class="reportes-cerrar"
+                onclick="cerrarReportes()">✕</button>
+
+        <h2>Reportes de analistas</h2>
+
+        <div class="reportes-filtros">
+            <label>
+                Mes
+                <select id="reportes-mes"></select>
+            </label>
+
+            <label>
+                Canal
+                <select id="reportes-canal"></select>
+            </label>
+
+            <label>
+                Analista
+                <select id="reportes-analista"></select>
+            </label>
+        </div>
+
+        <div class="reportes-tabla-scroll">
+            <table class="reportes-tabla">
+                <thead>
+                    <tr>
+                        <th>Analista</th>
+                        <th>Nombre de Reporte</th>
+                        <th>KPI que revisan</th>
+                        <th>Frecuencia actualización</th>
+                    </tr>
+                </thead>
+                <tbody id="reportes-tbody"></tbody>
+            </table>
+        </div>
+
+        <button type="button"
+                onclick="descargarReportes()">
+            Descargar Excel
+        </button>
+    </div>
+</div>
+
+{% endblock %}

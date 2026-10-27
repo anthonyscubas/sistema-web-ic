@@ -1,0 +1,67 @@
+
+/* Identidad visual y componentes compartidos */
+:root {
+  --ui-ink: #202b36;
+  --ui-muted: #697785;
+  --ui-line: #dfe5e9;
+  --ui-surface: #ffffff;
+  --ui-bg: #f5f7f8;
+  --ui-accent: #176b65;
+  --ui-accent-hover: #10544f;
+}
+html {scroll-behavior:smooth}
+body {background:var(--ui-bg);color:var(--ui-ink);font-family:Inter,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.enterprise-layout {grid-template-columns:246px minmax(0,1fr);background:var(--ui-bg)}
+.enterprise-sidebar {background:#182d34;color:#d5e0e0;padding:25px 14px 18px;border-right:1px solid #28434a}
+.enterprise-brand {padding:2px 10px 26px;gap:12px}
+.enterprise-brand__symbol {background:#e4f0eb;color:#164f4b;border:0;border-radius:7px;width:38px;height:38px;box-shadow:none;font-size:14px}
+.enterprise-brand strong {font-size:14px;font-weight:700;letter-spacing:-.015em}
+.enterprise-brand small {font-size:11px;color:#a8bdbf;margin-top:4px}
+.enterprise-sidebar__label {font-size:10px;letter-spacing:.08em;color:#8da8aa;font-weight:650;padding:18px 12px 10px}
+.enterprise-menu {gap:3px}
+.enterprise-menu>a {border:0;border-radius:6px;min-height:43px;font-size:13px;color:#c6d4d5;font-weight:500;padding:10px 12px}
+.enterprise-menu>a:hover {background:#ffffff12;color:#fff}
+.enterprise-menu>a.active {background:#e4f0eb;color:#174d49;font-weight:650;border:0}
+.menu-symbol {font-size:17px;color:#a8bfc0}
+.enterprise-menu>a.active .menu-symbol {color:#176b65}
+.enterprise-sidebar__bottom {border-top:1px solid #ffffff21}
+.enterprise-avatar {background:#36545a;border-radius:6px}
+.enterprise-logout {border-radius:6px;background:transparent;border-color:#ffffff30;font-size:12px}
+.enterprise-topbar {height:72px;background:#fff;border-bottom:1px solid var(--ui-line);padding:0 clamp(20px,3vw,44px)}
+.enterprise-topbar__left strong {color:var(--ui-ink);font-size:16px;font-weight:650}
+.enterprise-topbar__eyebrow {font-size:10px;color:var(--ui-muted);letter-spacing:.055em}
+.enterprise-topbar__tag {border:1px solid #d4e5e0;background:#f1f7f5;color:#27665f;border-radius:5px;font-size:10px;letter-spacing:.04em}
+.enterprise-main.app-main {width:min(1390px,calc(100% - 64px))!important;padding:32px 0 72px!important}
+.enterprise-workspace {background:var(--ui-bg)}
+.enterprise-progress {background:#fff;border-color:var(--ui-line);border-radius:8px}
+.enterprise-progress__meta b {color:var(--ui-accent)}
+.enterprise-progress__track span {background:var(--ui-accent)}
+/* Pantalla de acceso: menos efectos y jerarquía más clara */
+.guest-layout {background:#f4f7f6}
+.access-page {background:#f4f7f6!important}
+.access-glow {display:none!important}
+.access-panel {box-shadow:0 14px 45px #213c3810!important;border:1px solid #dce5e1!important;border-radius:12px!important;background:#fff!important}
+.access-kicker {color:#39746e!important;letter-spacing:.075em!important}
+.access-icon,.access-icon--premium {box-shadow:none!important;filter:none!important}
+.access-intro h1,.access-intro h1 span {color:#203b3b!important;text-shadow:none!important}
+.access-intro p {color:#687b7b}
+.access-card {border:1px solid #dce5e1!important;border-radius:8px!important;box-shadow:none!important;transition:border-color .15s,transform .15s!important}
+.access-card:hover {transform:translateY(-2px)!important;border-color:#9ebdb5!important;box-shadow:0 8px 22px #183b3410!important}
+.access-card--dark {background:#1d4140!important;color:#fff!important}
+.access-button {background:#176b65!important;border-radius:7px!important;box-shadow:none!important}
+.access-button:hover {background:#10544f!important}
+.access-input {border-radius:7px!important}
+/* Superficies, tablas y controles */
+.enterprise-main :is(.card,.panel,.stat-card,.metric-card,.kpi-card,.dashboard-card) {box-shadow:0 2px 10px #203c3808;border-color:var(--ui-line);border-radius:9px}
+.enterprise-main :is(input,select,textarea) {accent-color:var(--ui-accent)}
+.enterprise-main :is(input,select,textarea,button,a):focus-visible,.access-page :is(input,button,a):focus-visible {outline:3px solid #77aaa2!important;outline-offset:2px}
+.enterprise-main table {border-collapse:separate;border-spacing:0}
+.enterprise-main th {letter-spacing:.025em}
+.enterprise-main :is(button,.btn) {transition:background-color .15s,border-color .15s,box-shadow .15s}
+@media(max-width:800px) {
+ .enterprise-main.app-main {width:calc(100% - 32px)!important;padding-top:22px!important}
+ .enterprise-topbar {padding:0 16px}
+}
+@media(prefers-reduced-motion:reduce) {
+ *,*::before,*::after {scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}

@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% block title %}Evaluación Interna IC | Matriz{% endblock %}
+
+{% block content %}
+<style>
+/* El documento no debe desplazarse horizontalmente. */
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+/* Permitir que los hijos flexibles se reduzcan hasta el ancho disponible. */
+.matrix-shell,
+.matrix-shell .survey-head,
+.matrix-shell .survey-form {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.matrix-shell {
+    margin-inline: auto;
+}
+
+/* Solo la tabla lleva scroll horizontal. */
+.matrix-shell .matrix-scroll {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid #dce6f1;
+    border-radius: 14px;
+    -webkit-overflow-scrolling: touch;
+}
+.matrix-shell .matrix-table {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.matrix-shell .matrix-table th,
+.matrix-shell .matrix-table td {
+    box-sizing: border-box;
+    border: 1px solid #e2eaf2;
+    vertical-align: middle;
+}
+.matrix-shell .matrix-table thead th {
+    padding: 14px 10px;
+    color: #163752;
+    background: #edf3f9;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+.matrix-shell .matrix-table .matrix-person {
+    min-width: 225px;
+    width: 225px;
+    max-width: 225px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+.matrix-shell .matrix-table .matrix-area {
+    min-width: 155px;
+    width: 155px;
+    max-width: 155px;
+    text-align: left;
+    white-space: normal;
+}
+.matrix-shell .matrix-table .matrix-question,
+.matrix-shell .matrix-table .matrix-score-cell {
+    min-width: 265px;
+    width: 265px;
+    max-width: 265px;
+    text-align: center;
+}
+.matrix-shell .matrix-question-number {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #07589a;
+}
+.matrix-shell .matrix-question-title {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.45;
+    white-space: normal;
+}
+.matrix-shell .matrix-table tbody th,
+.matrix-shell .matrix-table tbody td {
+    padding: 13px 10px;
+}
+.matrix-shell .matrix-table tbody tr:nth-child(even) {
+    background: #f6f9fc;
+}
+.matrix-shell .matrix-table .matrix-options {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+}
+.matrix-shell .matrix-table .matrix-options label {
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+}
+.matrix-shell .matrix-table .matrix-options input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+.matrix-shell .matrix-table .matrix-options label span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 33px;
+    height: 34px;
+    border: 1px solid #bdd1e7;
+    border-radius: 8px;
+    background: #fff;
+    color: #274765;
+    font-size: 13px;
+    font-weight: 700;
+    transition: background .15s, border-color .15s;
+}
+.matrix-shell .matrix-table .matrix-options label:hover span {
+    background: #e9f4f9;
+    border-color: #1684ae;
+}
+.matrix-shell .matrix-table .matrix-options input:checked + span {
+    background: #156e87;
+    color: #fff;
+    border-color: #156e87;
+}
+.matrix-shell .matrix-table .matrix-options input:focus-visible + span {
+    outline: 2px solid #156e87;
+    outline-offset: 2px;
+}
+</style>
+
+<section class="survey-shell matrix-shell">
+    <header class="survey-head">
+        <div>
+            <span class="survey-kicker">EVALUACIÓN INTERNA · 45 PUNTOS</span>
+            <h1>Matriz de evaluación interna de analistas</h1>
+            <p>Califica a cada analista en las 7 competencias. Escala: 1 Nunca · 2 Pocas veces · 3 A veces · 4 Casi siempre · 5 Siempre.</p>
+        </div>
+        <div class="survey-identity">
+            <strong>{{ controller.nombre }}</strong>
+            <small>{{ controller.canal }}</small>
+        </div>
+    </header>
+    <button type="button" class="btn-ver-reportes"
+            onclick="abrirReportes()">
+        Ver reportes
+    </button>
+    <form method="post" class="survey-form" id="matrix-form">
+        <div class="survey-setup">
+            <label>
+                <span>Periodo</span>
+                <input type="month" name="periodo" value="{{ periodo }}" readonly required>
+            </label>
+        </div>
+
+        <div class="matrix-help">
+            <strong>Selecciona un puntaje por pregunta y analista.</strong>
+            Puedes desplazarte horizontalmente dentro de la tabla para ver las demás preguntas.
+        </div>
+
+        {% set preguntas = [
+            ('solicita_datos_tiempo', '¿El analista solicita los datos necesarios para realizar el reporte a tiempo?', 5),
+            ('envia_validar_plazo', '¿El analista envia a validar la información relevada en los plazos solicitados?', 5),
+            ('publica_reportes_tiempo', '¿El analista envia / publica los reportes / solicitudes a tiempo?', 7),
+            ('comunica_incidencias_tiempo', '¿El analista comunica a tiempo incidencias encontradas en la data al equipo comercial y cliente?', 5),
+            ('resuelve_incidencias_tiempo', '¿El analista atiende y resuelve las incidencias levantadas a tiempo?', 6),
+            ('capacita_actualizaciones', '¿El analista capacita al equipo comercial en el uso de plataforma app /web cuando hay actualizaciones?', 4),
+            ('comunica_status_tiempo', '¿El analista comunica status de avances del relevo de la información a tiempo?', 4),
+            ('registra_inconsistencias', '¿El analista registró inconsistencia en el/los reporte a cargo del analista?', 5),
+            ('propone_soluciones', "¿El analista aplica soluciones Innovadora en el/los reporte/KPI's a su cargo?", 4)
+        ] %}
+        {% set opciones = ['Nunca', 'Pocas veces', 'A veces', 'Casi siempre', 'Siempre'] %}
+
+        <div class="matrix-scroll">
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th scope="col" class="matrix-person">Analista</th>
+                        <th scope="col" class="matrix-area">Área / canal</th>
+                        {% for campo, pregunta, peso in preguntas %}
+                        <th scope="col" class="matrix-question">
+                            <span class="matrix-question-number">P{{ loop.index }} · {{ peso }} PTS</span>
+                            <span class="matrix-question-title">{{ pregunta }}</span>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in analistas %}
+                    <tr>
+                        <th scope="row" class="matrix-person">{{ a.nombre }}</th>
+                        <td class="matrix-area">{{ a.canal }}</td>
+                        {% for campo, pregunta, peso in preguntas %}
+                        <td class="matrix-score-cell">
+                            <div class="matrix-options" role="group" aria-label="{{ pregunta }} para {{ a.nombre }}">
+                                {% for v in range(1, 6) %}
+                                <label title="{{ opciones[v-1] }}">
+                                    <input type="radio"
+                                           name="a_{{ a.id }}_{{ campo }}"
+                                           value="{{ v }}"
+                                           aria-label="{{ opciones[v-1] }}"
+                                           required>
+                                    <span>{{ v }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="enterprise-progress" data-evaluation-progress><div class="enterprise-progress__meta"><span><strong>Progreso de evaluación</strong><small>Responde todas las preguntas antes de guardar</small></span><b data-progress-label>0 %</b></div><div class="enterprise-progress__track"><span data-progress-bar></span></div><div class="enterprise-progress__count" data-progress-count>Preparando evaluación…</div></div>
+<div class="survey-submit">
+
+            <button class="primary survey-submit__button" type="submit">Guardar Encuesta</button>
+        </div>
+    </form>
+</section>
+
+
+
+
+<div id="modal-reportes" class="modal-reportes" hidden>
+    <div class="reportes-contenido">
+        <button type="button"
+                class="reportes-cerrar"
+                onclick="cerrarReportes()">✕</button>
+
+        <h2>Reportes de analistas</h2>
+
+        <div class="reportes-filtros">
+            <label>
+                Mes
+                <select id="reportes-mes"></select>
+            </label>
+
+            <label>
+                Canal
+                <select id="reportes-canal"></select>
+            </label>
+
+            <label>
+                Analista
+                <select id="reportes-analista"></select>
+            </label>
+        </div>
+
+        <div class="reportes-tabla-scroll">
+            <table class="reportes-tabla">
+                <thead>
+                    <tr>
+                        <th>Analista</th>
+                        <th>Nombre de Reporte</th>
+                        <th>KPI que revisan</th>
+                        <th>Frecuencia actualización</th>
+                    </tr>
+                </thead>
+                <tbody id="reportes-tbody"></tbody>
+            </table>
+        </div>
+
+        <button type="button"
+                onclick="descargarReportes()">
+            Descargar Excel
+        </button>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,1728 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | Evaluación IC{% endblock %}
+
+{% block content %}
+
+{% set vista_actual = vista or 'resumen' %}
+
+{% if vista_actual == 'resumen' %}
+
+<section class="dash-shell">
+
+    <header class="dash-head">
+
+        <div>
+
+            <span class="survey-kicker">ADMINISTRACIÓN · RESULTADOS</span>
+
+            <h1>Panel de resultados</h1>
+
+        </div>
+
+        <form method="get" class="dash-period">
+
+            <label>
+
+                Periodo
+
+                <input
+
+                    type="month"
+
+                    name="periodo"
+
+                    value="{{ periodo }}"
+
+                    required
+
+                >
+
+            </label>
+
+            <button type="submit">Consultar</button>
+
+        </form>
+
+    </header>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;REGLA DE PUNTAJE&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <div class="score-rule">
+
+        <strong>Cómo se calcula</strong>
+
+        <span>Comercial / Controller · 45 pts</span>
+
+        <b>+</b>
+
+        <span>Alicorp · 55 pts</span>
+
+        <b>·</b>
+
+        <span>Parte aún no evaluada = conserva temporalmente su máximo</span>
+
+    </div>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;KPIS&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <div class="dash-kpis">
+
+        <article class="dash-kpi dash-kpi--main">
+
+            <span>Promedio actual</span>
+
+            <strong>
+
+                {{ '%.2f'|format(resumen.promedio) if resumen.promedio is not none else '—' }}
+
+            </strong>
+
+            <small>solo IC con al menos 1 encuesta</small>
+
+        </article>
+
+        <article class="dash-kpi">
+
+            <span>Evaluación completa</span>
+
+            <strong>{{ resumen.completos }}</strong>
+
+            <small>Controller + Alicorp</small>
+
+        </article>
+
+        <article class="dash-kpi">
+
+            <span>En proceso</span>
+
+            <strong>{{ resumen.en_proceso }}</strong>
+
+            <small>1 de 2 encuestas</small>
+
+        </article>
+
+        <article class="dash-kpi">
+
+            <span>Sin evaluar</span>
+
+            <strong>{{ resumen.sin_evaluar }}</strong>
+
+            <small>mantienen 100.00 base</small>
+
+        </article>
+
+    </div>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;ESTADO DEL EQUIPO / CANALES&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <div class="dash-grid">
+
+        <section class="dash-panel">
+
+            <div class="dash-panel__title">
+
+                <div>
+
+                    <h2>Estado del equipo</h2>
+
+                    <p>
+
+                        Según el puntaje actual de quienes ya tienen encuestas.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="state-list">
+
+                <div>
+
+                    <span>Excelente</span>
+
+                    <strong>{{ resumen.excelentes }}</strong>
+
+                    <i class="state state--excellent"></i>
+
+                </div>
+
+                <div>
+
+                    <span>Cumple</span>
+
+                    <strong>{{ resumen.cumplen }}</strong>
+
+                    <i class="state state--ok"></i>
+
+                </div>
+
+                <div>
+
+                    <span>En desarrollo</span>
+
+                    <strong>{{ resumen.desarrollo }}</strong>
+
+                    <i class="state state--warn"></i>
+
+                </div>
+
+                <div>
+
+                    <span>Requiere mejora</span>
+
+                    <strong>{{ resumen.requiere_mejora }}</strong>
+
+                    <i class="state state--bad"></i>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="dash-panel">
+
+            <div class="dash-panel__title">
+
+                <div>
+
+                    <h2>Promedio por canal</h2>
+
+                    <p>
+
+                        Solo considera IC con al menos una encuesta.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="channel-list">
+
+                {% for canal in por_canal %}
+
+                <div class="channel-row">
+
+                    <span>
+
+                        <strong>{{ canal.canal }}</strong>
+
+                        <small>
+
+                            {{ canal.evaluados }} evaluado(s) de {{ canal.total }}
+
+                        </small>
+
+                    </span>
+
+                    <b>
+
+                        {{ '%.2f'|format(canal.promedio) if canal.promedio is not none else '—' }}
+
+                    </b>
+
+                </div>
+
+                {% else %}
+
+                <p class="empty-copy">
+
+                    No hay canales registrados.
+
+                </p>
+
+                {% endfor %}
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;EVOLUCIÓN HISTÓRICA&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <section class="dash-panel history-panel" id="resultados">
+
+        <div class="dash-panel__title">
+
+            <div>
+
+                <h2>Evolución del desempeño</h2>
+
+                <p>
+
+                    Seguimiento mensual del puntaje del analista durante
+
+                    {{ periodo[:4] }}.
+
+                </p>
+
+            </div>
+
+            <select id="analistaHistorico">
+
+                {% for h in historico %}
+
+                <option value="{{ h.id }}">
+
+                    {{ h.nombre }} · {{ h.canal }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="history-summary">
+
+            <div>
+
+                <span>Último puntaje</span>
+
+                <strong id="histUltimo">—</strong>
+
+            </div>
+
+            <div>
+
+                <span>Variación</span>
+
+                <strong id="histVariacion">—</strong>
+
+            </div>
+
+            <div>
+
+                <span>Promedio</span>
+
+                <strong id="histPromedio">—</strong>
+
+            </div>
+
+            <div>
+
+                <span>Situación</span>
+
+                <strong id="histSituacion">—</strong>
+
+            </div>
+
+        </div>
+
+        <div class="chart-container">
+
+            <canvas id="graficoHistorico"></canvas>
+
+        </div>
+
+        <!--*&#x20;DATOS PARA JAVASCRIPT&#x20;*-->
+
+        <script id="historico-data" type="application/json">
+
+            {{ historico | tojson }}
+
+        </script>
+
+        <div class="chart-legend">
+
+            <span>
+
+                <i class="legend-final"></i>
+
+                Puntaje final
+
+            </span>
+
+            <span>
+
+                <i class="legend-controller"></i>
+
+                Comercial / Controller (aporte máx. 45)
+
+            </span>
+
+            <span>
+
+                <i class="legend-alicorp"></i>
+
+                Alicorp (aporte máx. 55)
+
+            </span>
+
+            <span>
+
+                <i class="legend-limit"></i>
+
+                Umbral 75
+
+            </span>
+
+        </div>
+
+    </section>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;PRIORIDAD DE SEGUIMIENTO&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <section class="dash-panel">
+
+        <div class="dash-panel__title">
+
+            <div>
+
+                <h2>Prioridad de seguimiento</h2>
+
+                <p>
+
+                    Analistas con evaluación completa y puntaje final menor a 75/100.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="priority-list">
+
+            {% set ns = namespace(total=0) %}
+
+            {% for r in resultados|sort(attribute='nota_final') %}
+
+                {% if r.evaluacion_completa and r.nota_final < 75 %}
+
+                    {% set ns.total = ns.total + 1 %}
+
+                    <div class="priority-item">
+
+                        <div class="priority-person">
+
+                            <span class="priority-dot"></span>
+
+                            <div>
+
+                                <strong>
+
+                                    {{ r.analista.nombre }}
+
+                                </strong>
+
+                                <small>
+
+                                    {{ r.analista.canal }}
+
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="priority-scores">
+
+                            <span>
+
+                                Controller
+
+                                <strong>
+
+                                    {{ '%.2f'|format(r.nota_interna) }}/45
+
+                                </strong>
+
+                            </span>
+
+                            <span>
+
+                                Alicorp
+
+                                <strong>
+
+                                    {{ '%.2f'|format(r.nota_alicorp) }}/55
+
+                                </strong>
+
+                            </span>
+
+                            <span class="priority-final">
+
+                                Puntaje final
+
+                                <strong>
+
+                                    {{ '%.2f'|format(r.nota_final) }}/100
+
+                                </strong>
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if ns.total == 0 %}
+
+            <div class="priority-empty">
+
+                <strong>Sin casos críticos</strong>
+
+                <span>
+
+                    No existen analistas con evaluación completa
+
+                    por debajo de 75/100 en este periodo.
+
+                </span>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;CONTROLLER VS ALICORP&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <section class="dash-panel dash-table-panel" id="analistas">
+
+        <div class="dash-panel__title">
+
+            <div>
+
+                <h2>Controller vs Alicorp</h2>
+
+                <p>
+
+                    Comparación entre la percepción interna y
+
+                    la evaluación del cliente.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table class="dash-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Analista</th>
+
+                        <th>Controller (%)</th>
+
+                        <th>Alicorp (%)</th>
+
+                        <th>Brecha p.p.</th>
+
+                        <th>Lectura</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% set comparacion = namespace(total=0) %}
+
+                    {% for r in resultados %}
+
+                        {% if r.nota_interna is not none and r.nota_alicorp is not none %}
+
+                            {% set comparacion.total = comparacion.total + 1 %}
+
+                            {% set brecha = r.porcentaje_alicorp - r.porcentaje_interno %}
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+
+                                        {{ r.analista.nombre }}
+
+                                    </strong>
+
+                                    <small>
+
+                                        {{ r.analista.canal }}
+
+                                    </small>
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+
+                                        {{ '%.2f'|format(r.porcentaje_interno) }}%
+
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    <strong>
+
+                                        {{ '%.2f'|format(r.porcentaje_alicorp) }}%
+
+                                    </strong>
+
+                                </td>
+
+                                <td>
+
+                                    {% if brecha > 0 %}
+
+                                    <strong class="gap-positive">
+
+                                        +{{ '%.2f'|format(brecha) }} p.p.
+
+                                    </strong>
+
+                                    {% elif brecha < 0 %}
+
+                                    <strong class="gap-negative">
+
+                                        {{ '%.2f'|format(brecha) }} p.p.
+
+                                    </strong>
+
+                                    {% else %}
+
+                                    <strong class="gap-neutral">
+
+                                        0.00
+
+                                    </strong>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    {% if brecha <= -10 %}
+
+                                    <span class="gap-label gap-label--alert">
+
+                                        Alicorp evalúa más bajo
+
+                                    </span>
+
+                                    {% elif brecha >= 10 %}
+
+                                    <span class="gap-label gap-label--positive">
+
+                                        Alicorp evalúa más alto
+
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="gap-label gap-label--neutral">
+
+                                        Percepción alineada
+
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                    {% if comparacion.total == 0 %}
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            No hay evaluaciones completas.
+
+                        </td>
+
+                    </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;DETALLE POR ANALISTA&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <section class="dash-panel dash-table-panel">
+
+        <div class="dash-panel__title">
+
+            <div>
+
+                <h2>Detalle por analista</h2>
+
+                <p>
+
+                    El 100.00 con 0/2 encuestas significa
+
+                    “Sin evaluar”, no excelencia obtenida.
+
+                </p>
+
+            </div>
+
+            <input
+
+                id="buscarAnalista"
+
+                type="search"
+
+                placeholder="Buscar analista o canal..."
+
+            >
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table
+
+                class="dash-table"
+
+                id="tablaAnalistas"
+
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>Analista</th>
+
+                        <th>Comercial / Controller (45 pts)</th>
+
+                        <th>Alicorp (55 pts)</th>
+
+                        <th>Puntaje actual</th>
+
+                        <th>Encuestas</th>
+
+                        <th>Estado</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for r in resultados %}
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+
+                                {{ r.analista.nombre }}
+
+                            </strong>
+
+                            <small>
+
+                                {{ r.analista.canal }}
+
+                            </small>
+
+                        </td>
+
+                        <td>
+
+                            {{ '%.2f'|format(r.nota_interna) if r.nota_interna is not none else '45.00 base' }}
+
+                        </td>
+
+                        <td>
+
+                            {{ '%.2f'|format(r.nota_alicorp) if r.nota_alicorp is not none else '55.00 base' }}
+
+                        </td>
+
+                        <td>
+
+                            <strong class="score-value">
+
+                                {{ '%.2f'|format(r.nota_final) }}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+
+                            <span class="progress-badge {{ 'is-complete' if r.evaluacion_completa else '' }}">
+
+                                {{ r.progreso_evaluacion }}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span class="status-pill status-{{ r.estado|lower|replace(' ', '-')|replace('ó','o') }}">
+
+                                {{ r.estado }}
+
+                            </span>
+
+                        </td>
+
+                    </tr>
+
+                    {% else %}
+
+                    <tr>
+
+                        <td colspan="6">
+
+                            No hay analistas activos.
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <!--*&#x20;IA&#x20;*-->
+
+    <!--*&#x20;======================================================&#x20;*-->
+
+    <section class="dash-panel ia-panel">
+
+        <div class="dash-panel__title">
+
+            <div>
+
+                <h2>Análisis de resultados</h2>
+
+                <p>
+
+                    Interpreta los resultados y genera
+
+                    recomendaciones para la toma de decisiones.
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <form
+
+            method="post"
+
+            action="{{ url_for('dashboard', periodo=periodo) }}"
+
+        >
+
+            <input
+
+                type="hidden"
+
+                name="periodo"
+
+                value="{{ periodo }}"
+
+            >
+
+            <button
+
+                class="primary"
+
+                type="submit"
+
+            >
+
+                Generar análisis
+
+            </button>
+
+        </form>
+
+        {% if error_ia %}
+
+        <p class="ia-error">
+
+            {{ error_ia }}
+
+        </p>
+
+        {% endif %}
+
+        {% if analisis_ia %}
+
+        <div class="ia-grid">
+
+            <article>
+
+                <strong>Resumen ejecutivo</strong>
+
+                <p>
+
+                    {{ analisis_ia.resumen_ejecutivo }}
+
+                </p>
+
+            </article>
+
+            <article>
+
+                <strong>Canales prioritarios</strong>
+
+                <p>
+
+                    {{ analisis_ia.canales_prioritarios }}
+
+                </p>
+
+            </article>
+
+            <article>
+
+                <strong>Acciones recomendadas</strong>
+
+                <p>
+
+                    {{ analisis_ia.acciones_recomendadas }}
+
+                </p>
+
+            </article>
+
+            <article>
+
+                <strong>Datos pendientes</strong>
+
+                <p>
+
+                    {{ analisis_ia.datos_pendientes }}
+
+                </p>
+
+            </article>
+
+        </div>
+
+        {% endif %}
+
+    </section>
+
+</section>
+
+{% endif %}
+
+{% if vista_actual == 'historico' %}
+<section class="history-module">
+    <header class="history-module__head">
+        <div>
+            <span class="survey-kicker">REGISTRO DE EVALUACIONES</span>
+            <h1>Histórico de preguntas y respuestas</h1>
+            <p>Consulta las respuestas de ambas evaluaciones sin modificar los filtros del Resumen Ejecutivo.</p>
+        </div>
+        <form method="get" class="history-module__filter">
+            <input type="hidden" name="vista" value="historico">
+            <label for="periodo_historico">Mes de evaluación</label>
+            <input id="periodo_historico" name="periodo_historico" type="month" value="{{ periodo_historico }}" required>
+            <button type="submit" class="primary">Consultar</button>
+        </form>
+    </header>
+    <article class="dash-panel history-module__panel">
+        <div class="dash-panel__title">
+            <div><h2>Respuestas registradas</h2><p>{{ historico_respuestas|length }} evaluación(es) en {{ periodo_historico }}</p></div>
+        </div>
+        <div class="history-module__table-wrap">
+            <table class="dash-table history-module__table">
+                <thead><tr><th>Formulario</th><th>Analista</th><th>Canal</th><th>Evaluador</th><th>Preguntas y respuestas</th><th>Comentario</th></tr></thead>
+                <tbody>
+                {% for registro in historico_respuestas %}
+                    <tr>
+                        <td><span class="history-module__type">{{ registro.tipo }}</span></td>
+                        <td><strong>{{ registro.analista }}</strong></td>
+                        <td>{{ registro.canal }}</td>
+                        <td>{{ registro.evaluador }}</td>
+                        <td><details class="history-module__details"><summary>Ver 7 respuestas</summary>
+                            <ol>{% for pregunta, respuesta in registro.respuestas %}<li><span>{{ pregunta }}</span><strong>{{ respuesta if respuesta is not none else '—' }} / 5</strong></li>{% endfor %}</ol>
+                        </details></td>
+                        <td>{{ registro.comentario or '—' }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="history-module__empty">No hay respuestas registradas para este mes.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{% if vista_actual == 'resumen' %}
+
+<script src="https\://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+//*&#x20;============================================================*
+
+//*&#x20;BUSCADOR*
+
+//*&#x20;============================================================*
+
+const buscar = document.getElementById('buscarAnalista');
+
+if (buscar) {
+
+    buscar.addEventListener('input', () => {
+
+        const valor =
+
+            buscar.value
+
+                .trim()
+
+                .toLowerCase();
+
+        document
+
+            .querySelectorAll('#tablaAnalistas tbody tr')
+
+            .forEach(fila => {
+
+                fila.hidden =
+
+                    valor &&
+
+                    !fila.textContent
+
+                        .toLowerCase()
+
+                        .includes(valor);
+
+            });
+
+    });
+
+}
+
+//*&#x20;============================================================*
+
+//*&#x20;HISTÓRICO*
+
+//*&#x20;============================================================*
+
+const historicoElement =
+
+    document.getElementById('historico-data');
+
+let historico = [];
+
+if (historicoElement) {
+
+    try {
+
+        historico =
+
+            JSON.parse(
+
+                historicoElement.textContent
+
+            );
+
+    } catch (error) {
+
+        console.error(
+
+            'Error leyendo histórico:',
+
+            error
+
+        );
+
+        historico = [];
+
+    }
+
+}
+
+const selectorHistorico =
+
+    document.getElementById('analistaHistorico');
+
+const canvasHistorico =
+
+    document.getElementById('graficoHistorico');
+
+let graficoHistorico = null;
+
+const nombresMeses = {
+
+    '01': 'Ene',
+
+    '02': 'Feb',
+
+    '03': 'Mar',
+
+    '04': 'Abr',
+
+    '05': 'May',
+
+    '06': 'Jun',
+
+    '07': 'Jul',
+
+    '08': 'Ago',
+
+    '09': 'Sep',
+
+    '10': 'Oct',
+
+    '11': 'Nov',
+
+    '12': 'Dic'
+
+};
+
+//*&#x20;============================================================*
+
+//*&#x20;ACTUALIZAR GRÁFICO*
+
+//*&#x20;============================================================*
+
+function actualizarHistorico() {
+
+    if (
+
+        !selectorHistorico ||
+
+        !canvasHistorico
+
+    ) {
+
+        return;
+
+    }
+
+    const id =
+
+        Number(
+
+            selectorHistorico.value
+
+        );
+
+    const persona =
+
+        historico.find(
+
+            item =>
+
+                Number(item.id) === id
+
+        );
+
+    if (!persona) {
+
+        return;
+
+    }
+
+    const meses =
+
+        persona.meses || [];
+
+    const labels =
+
+        meses.map(
+
+            item =>
+
+                nombresMeses[
+
+                    item.periodo.slice(5, 7)
+
+                ]
+
+        );
+
+    const finales =
+
+        meses.map(
+
+            item =>
+
+                item.nota_final !== null &&
+
+                item.nota_final !== undefined
+
+                    ? Number(item.nota_final)
+
+                    : null
+
+        );
+
+    const internas =
+
+        meses.map(
+
+            item =>
+
+                item.nota_interna !== null &&
+
+                item.nota_interna !== undefined
+
+                    ? Number(item.nota_interna)
+
+                    : null
+
+        );
+
+    const alicorp =
+
+        meses.map(
+
+            item =>
+
+                item.nota_alicorp !== null &&
+
+                item.nota_alicorp !== undefined
+
+                    ? Number(item.nota_alicorp)
+
+                    : null
+
+        );
+
+    //*&#x20;========================================================*
+
+    //*&#x20;INDICADORES*
+
+    //*&#x20;========================================================*
+
+    const finalesValidos =
+
+        finales.filter(
+
+            valor =>
+
+                valor !== null &&
+
+                !Number.isNaN(valor)
+
+        );
+
+    const ultimo =
+
+        finalesValidos.length
+
+            ? finalesValidos[
+
+                finalesValidos.length - 1
+
+            ]
+
+            : null;
+
+    const anterior =
+
+        finalesValidos.length > 1
+
+            ? finalesValidos[
+
+                finalesValidos.length - 2
+
+            ]
+
+            : null;
+
+    const promedio =
+
+        finalesValidos.length
+
+            ? finalesValidos.reduce(
+
+                (a, b) => a + b,
+
+                0
+
+            ) / finalesValidos.length
+
+            : null;
+
+    const histUltimo =
+
+        document.getElementById(
+
+            'histUltimo'
+
+        );
+
+    const histVariacion =
+
+        document.getElementById(
+
+            'histVariacion'
+
+        );
+
+    const histPromedio =
+
+        document.getElementById(
+
+            'histPromedio'
+
+        );
+
+    const histSituacion =
+
+        document.getElementById(
+
+            'histSituacion'
+
+        );
+
+    if (histUltimo) {
+
+        histUltimo.textContent =
+
+            ultimo !== null
+
+                ? ultimo.toFixed(2)
+
+                : '—';
+
+    }
+
+    if (histVariacion) {
+
+        if (
+
+            ultimo !== null &&
+
+            anterior !== null
+
+        ) {
+
+            const diferencia =
+
+                ultimo - anterior;
+
+            histVariacion.textContent =
+
+                (diferencia >= 0 ? '+' : '') +
+
+                diferencia.toFixed(2);
+
+        } else {
+
+            histVariacion.textContent =
+
+                '—';
+
+        }
+
+    }
+
+    if (histPromedio) {
+
+        histPromedio.textContent =
+
+            promedio !== null
+
+                ? promedio.toFixed(2)
+
+                : '—';
+
+    }
+
+    if (histSituacion) {
+
+        histSituacion.textContent =
+
+            ultimo === null
+
+                ? 'Sin datos'
+
+                : ultimo < 75
+
+                    ? 'Seguimiento'
+
+                    : 'Cumple';
+
+    }
+
+    //*&#x20;========================================================*
+
+    //*&#x20;BORRAR GRÁFICO ANTERIOR*
+
+    //*&#x20;========================================================*
+
+    if (graficoHistorico) {
+
+        graficoHistorico.destroy();
+
+        graficoHistorico = null;
+
+    }
+
+    //*&#x20;========================================================*
+
+    //*&#x20;SI NO HAY DATOS*
+
+    //*&#x20;========================================================*
+
+    if (!meses.length) {
+
+        return;
+
+    }
+
+    //*&#x20;========================================================*
+
+    //*&#x20;CREAR GRÁFICO*
+
+    //*&#x20;========================================================*
+
+    graficoHistorico =
+
+        new Chart(
+
+            canvasHistorico.getContext('2d'),
+
+            {
+
+                type: 'line',
+
+                data: {
+
+                    labels: labels,
+
+                    datasets: [
+
+                        {
+
+                            label: 'Puntaje final',
+
+                            data: finales,
+
+                            borderColor:
+
+                                '#2563eb',
+
+                            backgroundColor:
+
+                                '#2563eb',
+
+                            borderWidth: 3,
+
+                            tension: 0.3,
+
+                            pointRadius: 5,
+
+                            pointHoverRadius: 7,
+
+                            spanGaps: true
+
+                        },
+
+                        {
+
+                            label: 'Controller',
+
+                            data: internas,
+
+                            borderColor:
+
+                                '#0f172a',
+
+                            backgroundColor:
+
+                                '#0f172a',
+
+                            borderWidth: 2,
+
+                            borderDash:
+
+                                [6, 4],
+
+                            tension: 0.3,
+
+                            pointRadius: 4,
+
+                            spanGaps: true
+
+                        },
+
+                        {
+
+                            label: 'Alicorp',
+
+                            data: alicorp,
+
+                            borderColor:
+
+                                '#16a34a',
+
+                            backgroundColor:
+
+                                '#16a34a',
+
+                            borderWidth: 2,
+
+                            borderDash:
+
+                                [3, 4],
+
+                            tension: 0.3,
+
+                            pointRadius: 4,
+
+                            spanGaps: true
+
+                        },
+
+                        {
+
+                            label:
+
+                                'Umbral 75',
+
+                            data:
+
+                                labels.map(
+
+                                    () => 75
+
+                                ),
+
+                            borderColor:
+
+                                '#dc2626',
+
+                            borderWidth: 2,
+
+                            borderDash:
+
+                                [8, 6],
+
+                            pointRadius: 0,
+
+                            tension: 0
+
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    maintainAspectRatio:
+
+                        false,
+
+                    interaction: {
+
+                        mode: 'index',
+
+                        intersect: false
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            min: 0,
+
+                            max: 100,
+
+                            ticks: {
+
+                                stepSize: 10
+
+                            },
+
+                            title: {
+
+                                display: true,
+
+                                text: 'Puntaje'
+
+                            }
+
+                        },
+
+                        x: {
+
+                            title: {
+
+                                display: true,
+
+                                text: 'Mes'
+
+                            }
+
+                        }
+
+                    },
+
+                    plugins: {
+
+                        legend: {
+
+                            display: false
+
+                        },
+
+                        tooltip: {
+
+                            callbacks: {
+
+                                label:
+
+                                    function(context) {
+
+                                        if (
+
+                                            context.raw === null
+
+                                        ) {
+
+                                            return null;
+
+                                        }
+
+                                        return (
+
+                                            context.dataset.label +
+
+                                            ': ' +
+
+                                            Number(
+
+                                                context.raw
+
+                                            ).toFixed(2)
+
+                                        );
+
+                                    }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        );
+
+}
+
+//*&#x20;============================================================*
+
+//*&#x20;INICIAR*
+
+//*&#x20;============================================================*
+
+if (
+
+    selectorHistorico &&
+
+    canvasHistorico
+
+) {
+
+    selectorHistorico
+
+        .addEventListener(
+
+            'change',
+
+            actualizarHistorico
+
+        );
+
+    actualizarHistorico();
+
+}
+
+</script>
+
+{% endif %}
+
+{% endblock %}

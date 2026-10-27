@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de usuarios | Evaluación IC{% endblock %}
+{% block content %}
+{% set vista_actual = request.args.get('vista', 'analistas') %}
+{% if vista_actual not in ['analistas', 'coordinadores', 'controllers', 'alicorp', 'canales', 'reportes'] %}
+    {% set vista_actual = 'analistas' %}
+{% endif %}
+<div class="admin-page enterprise-admin-modules">
+    <header class="admin-heading">
+        <div>
+            <span class="eyebrow">GESTIÓN DE USUARIOS</span>
+            <h1>{{ {
+    'analistas': 'Analistas',
+    'coordinadores': 'Coordinadores',
+    'controllers': 'Controllers',
+    'alicorp': 'Accesos Alicorp',
+    'canales': 'Canales',
+    'reportes': 'Reportes de analistas'
+}[vista_actual] }}</h1>
+            <p>Administración de cuentas, responsables y accesos del sistema.</p>
+        </div>
+        <span class="admin-period">Periodo {{ periodo }}</span>
+    </header>
+
+    <nav class="admin-module-nav" aria-label="Secciones de administración">
+        {% for codigo, nombre in [
+            ('analistas', 'Analistas'),
+            ('coordinadores', 'Coordinadores'),
+            ('controllers', 'Controllers'),
+            ('alicorp', 'Alicorp'),
+            ('canales', 'Canales'),
+            ('reportes', 'Reportes')
+        ] %}
+        <a href="{{ url_for('admin', vista=codigo, periodo=periodo) }}"
+           class="{{ 'is-active' if vista_actual == codigo else '' }}"
+           {% if vista_actual == codigo %}aria-current="page"{% endif %}>{{ nombre }}</a>
+        {% endfor %}
+    </nav>
+
+
+    {% if vista_actual == 'canales' %}
+    <div class="admin-section-heading"><span>05</span><div><h2>Gestión de canales</h2><p>Administra los canales disponibles para Coordinadores, Controllers y Analistas.</p></div></div>
+    <section class="admin-layout-two">
+        <div class="admin-card">
+            <div class="admin-card-title"><h3>{{ 'Editar canal' if canal_edicion else 'Nuevo canal' }}</h3><p>Los canales activos aparecerán en los formularios de creación.</p></div>
+            <form method="post" class="admin-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="accion" value="{{ 'editar_canal' if canal_edicion else 'crear_canal' }}">
+                <input type="hidden" name="periodo" value="{{ periodo }}">
+                {% if canal_edicion %}<input type="hidden" name="canal_id" value="{{ canal_edicion.id }}">{% endif %}
+                <label>Nombre del canal<input name="nombre" maxlength="100" value="{{ canal_edicion.nombre if canal_edicion else '' }}" required placeholder="Ej. Minimayorista"></label>
+                <div class="actions"><button class="primary">{{ 'Guardar cambios' if canal_edicion else 'Registrar canal' }}</button>
+                    {% if canal_edicion %}<a class="ghost admin-link-button" href="{{ url_for('admin', vista='canales', periodo=periodo) }}">Cancelar</a>{% endif %}
+                </div>
+            </form>
+        </div>
+        <div class="admin-card">
+            <div class="admin-card-title"><h3>Canales registrados</h3><p>{{ canales_registrados|length }} canal(es) · {{ canales|length }} activo(s)</p></div>
+            <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Canal</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+                {% for c in canales_registrados %}<tr><td><strong>{{ c.nombre }}</strong></td>
+                    <td><span class="admin-badge {{ 'active' if c.activo else 'inactive' }}">{{ 'Activo' if c.activo else 'Inactivo' }}</span></td>
+                    <td><div class="actions"><a class="ghost admin-link-button" href="{{ url_for('admin', vista='canales', periodo=periodo, editar_canal=c.id) }}">Editar</a>
+                    <form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="accion" value="estado_canal"><input type="hidden" name="canal_id" value="{{ c.id }}"><input type="hidden" name="periodo" value="{{ periodo }}"><button class="ghost">{{ 'Desactivar' if c.activo else 'Activar' }}</button></form></div></td></tr>
+                {% else %}<tr><td colspan="3" class="admin-empty">No hay canales registrados.</td></tr>{% endfor %}
+            </tbody></table></div>
+            <p>Desactivar un canal impide nuevas asignaciones, pero conserva los registros existentes. Renombrarlo actualiza el canal de los usuarios actuales.</p>
+        </div>
+    </section>
+    {% elif vista_actual == 'analistas' %}
+
+    <!-- 01 GESTIÓN DE ANALISTAS -->
+    <div class="admin-section-heading"><span>01</span><div><h2>Gestión de analistas</h2><p>Registra y administra los analistas del sistema.</p></div></div>
+    <section class="admin-layout-two" aria-label="Gestión de analistas">
+        <article class="panel admin-card">
+            <div class="admin-card-title"><h3>Nuevo analista</h3><p>Agrega un integrante al equipo de evaluación.</p></div>
+            <form method="post" class="stack">
+                <input type="hidden" name="next_vista" value="analistas">
+                <input type="hidden" name="accion" value="crear_analista">
+                <label>Nombre completo<input name="nombre" required></label>
+                <label>Canal<select name="canal" required><option value="">Seleccionar canal</option>{% for canal in canales %}<option value="{{ canal }}">{{ canal }}</option>{% endfor %}</select></label>
+                <label>Correo del analista<input type="email" name="correo"></label>
+                <button class="primary">Registrar analista</button>
+            </form>
+        </article>
+
+        <article class="panel admin-table-panel">
+            <div class="admin-card-title">
+                <h3>Analistas registrados</h3>
+                <p>{{ analistas|length }} analista(s) registrado(s)</p>
+            </div>
+
+            <div class="table-wrap admin-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Canal</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for a in analistas %}
+                        <tr>
+                            <td><strong>{{ a.nombre }}</strong></td>
+                            <td>{{ a.canal }}</td>
+
+                            <td>
+                                <span class="admin-badge {{ 'active' if a.activo else 'inactive' }}">
+                                    {{ 'Activo' if a.activo else 'Inactivo' }}
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="actions">
+
+                                    <form method="post">
+                <input type="hidden" name="next_vista" value="analistas">
+                                        <input type="hidden" name="accion" value="estado_analista">
+                                        <input type="hidden" name="analista_id" value="{{ a.id }}">
+                                        <input type="hidden" name="periodo" value="{{ periodo }}">
+
+                                        <button class="ghost">
+                                            {{ 'Desactivar' if a.activo else 'Activar' }}
+                                        </button>
+                                    </form>
+
+                                    <form method="post"
+                                        onsubmit="return confirm('¿Eliminar permanentemente a {{ a.nombre|e }}? También se eliminarán sus encuestas y alertas. Esta acción no se puede deshacer.');">
+                <input type="hidden" name="next_vista" value="analistas">
+
+                                        <input type="hidden" name="accion" value="eliminar_analista">
+                                        <input type="hidden" name="analista_id" value="{{ a.id }}">
+                                        <input type="hidden" name="periodo" value="{{ periodo }}">
+
+                                        <button class="danger">Eliminar</button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="admin-empty">
+                                Aún no hay analistas registrados.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+
+    {% elif vista_actual == 'coordinadores' %}
+    <section class="admin-alert-banner" aria-labelledby="alertas-titulo">
+        <div class="admin-alert-copy"><span class="admin-alert-symbol" aria-hidden="true">✉</span><div>
+            <h2 id="alertas-titulo">Alertas por correo</h2>
+            <p>Envía las alertas pendientes al Coordinador responsable de cada canal. Las alertas ya entregadas no se repiten.</p>
+        </div></div>
+        <form method="post" class="admin-alert-actions">
+            <input type="hidden" name="next_vista" value="coordinadores">
+            <input type="hidden" name="accion" value="enviar_alertas">
+            <label>Periodo<input type="month" name="periodo" value="{{ periodo }}" required></label>
+            <button class="primary">Enviar alertas pendientes</button>
+        </form>
+    </section>
+
+    <!-- 03 COORDINADORES DE ALERTAS -->
+    <div class="admin-section-heading"><span>03</span><div><h2>Coordinadores</h2><p>Define quién recibirá por correo las alertas de analistas con puntaje menor a 75/100.</p></div></div>
+    <section class="admin-coordinator-layout" aria-label="Coordinadores">
+        <article class="panel admin-card">
+            <div class="admin-card-title"><h3>{{ 'Editar Coordinador' if coordinador_edicion else 'Nuevo Coordinador' }}</h3><p>Solo puede existir un Coordinador por canal.</p></div>
+            <form method="post" class="stack">
+                <input type="hidden" name="next_vista" value="coordinadores">
+                <input type="hidden" name="accion" value="{{ 'editar_coordinador' if coordinador_edicion else 'crear_coordinador' }}">
+                {% if coordinador_edicion %}<input type="hidden" name="coordinador_id" value="{{ coordinador_edicion.id }}">{% endif %}
+                <label>Nombre completo<input name="nombre" value="{{ coordinador_edicion.nombre if coordinador_edicion else '' }}" required></label>
+                <label>Correo<input type="email" name="correo" value="{{ coordinador_edicion.correo if coordinador_edicion else '' }}" required></label>
+                <label>Canal<select name="canal" required><option value="">Seleccionar canal</option>{% for canal in canales %}<option value="{{ canal }}" {% if coordinador_edicion and coordinador_edicion.canal == canal %}selected{% endif %}>{{ canal }}</option>{% endfor %}</select></label>
+                <div class="actions"><button class="primary">{{ 'Guardar cambios' if coordinador_edicion else 'Registrar Coordinador' }}</button>{% if coordinador_edicion %}<a class="ghost admin-link-button" href="{{ url_for('admin', periodo=periodo, vista='coordinadores') }}">Cancelar</a>{% endif %}</div>
+            </form>
+        </article>
+        <article class="panel admin-table-panel">
+            <div class="admin-card-title"><h3>Coordinadores registrados</h3><p>{{ coordinadores|length }} de {{ canales|length }} canal(es) asignados</p></div>
+            <div class="table-wrap admin-scroll"><table>
+                <thead><tr><th>Nombre</th><th>Correo</th><th>Canal</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody>{% for c in coordinadores %}<tr><td><strong>{{ c.nombre }}</strong></td><td>{{ c.correo }}</td><td>{{ c.canal }}</td><td><span class="admin-badge {{ 'active' if c.activo else 'inactive' }}">{{ 'Activo' if c.activo else 'Inactivo' }}</span></td><td><div class="actions"><a class="ghost admin-link-button" href="{{ url_for('admin', periodo=periodo, vista='coordinadores', editar_coordinador=c.id) }}">Editar</a><form method="post">
+                <input type="hidden" name="next_vista" value="coordinadores"><input type="hidden" name="accion" value="estado_coordinador"><input type="hidden" name="coordinador_id" value="{{ c.id }}"><input type="hidden" name="periodo" value="{{ periodo }}"><button class="ghost">{{ 'Desactivar' if c.activo else 'Activar' }}</button></form></div></td></tr>{% else %}<tr><td colspan="5" class="admin-empty">Aún no hay Coordinadores registrados.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </article>
+    </section>
+
+    {% elif vista_actual == 'controllers' %}
+    <!-- 02 CONTROLLERS -->
+    <div class="admin-section-heading"><span>02</span><div><h2>Controllers</h2><p>Controla quién puede completar la evaluación interna IC por canal.</p></div></div>
+    <section class="admin-coordinator-layout" aria-label="Controllers">
+        <article class="panel admin-card">
+            <div class="admin-card-title"><h3>Nuevo Controller</h3><p>Crea un acceso por correo asociado a un canal.</p></div>
+            <form method="post" class="stack">
+                <input type="hidden" name="next_vista" value="controllers">
+                <input type="hidden" name="accion" value="crear_controller">
+                <label>Nombre completo<input name="nombre" required></label>
+                <label>Correo de acceso<input type="email" name="correo" required></label>
+                <label>Canal<select name="canal" required><option value="">Seleccionar canal</option>{% for canal in canales %}<option value="{{ canal }}">{{ canal }}</option>{% endfor %}</select></label>
+                <button class="primary">Registrar Controller</button>
+            </form>
+        </article>
+        <article class="panel admin-table-panel">
+            <div class="admin-card-title"><h3>Controllers registrados</h3><p>{{ controllers|length }} cuenta(s) registradas</p></div>
+            <div class="table-wrap admin-scroll"><table>
+                <thead><tr><th>Nombre</th><th>Correo</th><th>Canal</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody>{% for c in controllers %}<tr><td><strong>{{ c.nombre }}</strong></td><td>{{ c.correo }}</td><td>{{ c.canal }}</td><td><span class="admin-badge {{ 'active' if c.activo else 'inactive' }}">{{ 'Activo' if c.activo else 'Inactivo' }}</span></td><td><form method="post">
+                <input type="hidden" name="next_vista" value="controllers"><input type="hidden" name="accion" value="estado_controller"><input type="hidden" name="controller_id" value="{{ c.id }}"><input type="hidden" name="periodo" value="{{ periodo }}"><button class="ghost">{{ 'Desactivar' if c.activo else 'Activar' }}</button></form></td></tr>{% else %}<tr><td colspan="5" class="admin-empty">Aún no hay Controllers registrados.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </article>
+    </section>
+
+    {% elif vista_actual == 'alicorp' %}
+    <!-- 04 ACCESOS ALICORP -->
+    <div class="admin-section-heading"><span>04</span><div><h2>Accesos Alicorp</h2><p>Administra los correos autorizados para completar la evaluación Alicorp.</p></div></div>
+    <section class="admin-coordinator-layout" aria-label="Accesos Alicorp">
+        <article class="panel admin-card">
+            <div class="admin-card-title"><h3>Nuevo acceso Alicorp</h3><p>Registra un correo autorizado para responder la evaluación.</p></div>
+            <form method="post" class="stack">
+                <input type="hidden" name="next_vista" value="alicorp"><input type="hidden" name="accion" value="crear_alicorp"><label>Correo electrónico<input type="email" name="correo" required></label><button class="primary">Registrar correo Alicorp</button></form>
+        </article>
+        <article class="panel admin-table-panel">
+            <div class="admin-card-title"><h3>Correos Alicorp registrados</h3><p>{{ correos_alicorp|length }} cuenta(s) registradas</p></div>
+            <div class="table-wrap admin-scroll"><table>
+                <thead><tr><th>Correo</th><th>Estado</th><th>Acción</th></tr></thead>
+                <tbody>{% for cuenta in correos_alicorp %}<tr><td>{{ cuenta.correo }}</td><td><span class="admin-badge {{ 'active' if cuenta.activo else 'inactive' }}">{{ 'Activo' if cuenta.activo else 'Inactivo' }}</span></td><td><form method="post">
+                <input type="hidden" name="next_vista" value="alicorp"><input type="hidden" name="accion" value="estado_alicorp"><input type="hidden" name="correo_id" value="{{ cuenta.id }}"><button class="ghost">{{ 'Desactivar' if cuenta.activo else 'Activar' }}</button></form></td></tr>{% else %}<tr><td colspan="3" class="admin-empty">Aún no hay correos Alicorp registrados.</td></tr>{% endfor %}</tbody>
+            </table></div>
+        </article>
+    </section>
+    
+    {% elif vista_actual == 'reportes' %}
+
+    <div class="admin-section-heading">
+        <span>06</span>
+        <div>
+            <h2>Reportes de analistas</h2>
+            <p>Administra la información mensual de reportes y KPI de los analistas.</p>
+        </div>
+    </div>
+
+    <section class="admin-coordinator-layout">
+
+        <article class="panel admin-card">
+
+            <div class="admin-card-title">
+                <h3>Cargar reportes desde Excel</h3>
+                <p>Selecciona el archivo de reportes para registrar la información en el sistema.</p>
+            </div>
+
+            <form method="POST"
+                  action="{{ url_for('cargar_excel_analistas') }}"
+                  enctype="multipart/form-data"
+                  class="stack">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token }}">
+
+                <label>
+                    Año de los reportes
+                    <input type="number"
+                           name="anio"
+                           value="{{ periodo[:4] }}"
+                           min="2020"
+                           max="2100"
+                           required>
+                </label>
+
+                <label>
+                    Seleccionar archivo Excel
+                    <input type="file"
+                           name="archivo_excel"
+                           accept=".xlsx"
+                           required>
+                </label>
+
+                <button type="submit" class="primary">
+                    Cargar reportes
+                </button>
+
+            </form>
+
+        </article>
+
+        <article class="panel admin-card">
+
+            <div class="admin-card-title">
+                <h3>Información de la carga</h3>
+                <p>Los reportes cargados estarán disponibles para los evaluadores de Interno y Alicorp.</p>
+            </div>
+
+            <p>
+                El sistema reconocerá automáticamente el mes
+                indicado en la columna MES del archivo Excel.
+            </p>
+
+            <p>
+                Al cargar nuevamente información de un mes,
+                se reemplazarán los reportes correspondientes
+                a ese periodo, conservando los demás meses.
+            </p>
+
+        </article>
+
+    </section>
+
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,457 @@
+
+/* =========================================================
+   REPORTES DE ANALISTAS
+   DISEÑO CORPORATIVO PROFESIONAL
+   ========================================================= */
+
+.modal-reportes[hidden] {
+    display: none !important;
+}
+
+/* FONDO OSCURECIDO */
+.modal-reportes:not([hidden]) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999999 !important;
+
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+
+    padding: 24px !important;
+    background: rgba(12, 23, 43, 0.66) !important;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+
+    overflow: auto;
+}
+
+/* VENTANA PRINCIPAL */
+.modal-reportes .reportes-contenido {
+    position: relative !important;
+
+    width: min(1120px, 96vw) !important;
+    height: min(690px, 88vh) !important;
+    max-height: 88vh !important;
+    min-height: 0 !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+
+    padding: 30px 32px !important;
+
+    background: #f8fafc !important;
+    border: 1px solid #dce4ee !important;
+    border-radius: 16px !important;
+
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.25),
+        0 8px 24px rgba(0, 0, 0, 0.10) !important;
+
+    color: #172b4d !important;
+    overflow: hidden !important;
+
+    animation: reportesAparecer 0.25s ease-out;
+}
+
+@keyframes reportesAparecer {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* =========================================================
+   TITULO
+   ========================================================= */
+
+.reportes-contenido h2 {
+    margin: 0 55px 5px 0 !important;
+    padding: 0 !important;
+
+    font-size: 23px !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.6px !important;
+    line-height: 1.4 !important;
+
+    color: #142c4e !important;
+}
+
+/* LINEA DECORATIVA SUPERIOR */
+.reportes-contenido::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    height: 5px;
+    background: linear-gradient(
+        90deg,
+        #244bc5,
+        #5178e4
+    );
+}
+
+/* BOTON CERRAR */
+.reportes-contenido .reportes-cerrar {
+    position: absolute !important;
+    top: 22px !important;
+    right: 25px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+
+    padding: 0 !important;
+
+    background: #edf1f7 !important;
+    color: #596b83 !important;
+
+    border: 1px solid #dce4ee !important;
+    border-radius: 10px !important;
+
+    font-size: 20px !important;
+    font-weight: 600 !important;
+
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.reportes-contenido .reportes-cerrar:hover {
+    background: #fee9e9 !important;
+    border-color: #f4c2c2 !important;
+    color: #c53030 !important;
+    transform: rotate(90deg);
+}
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+.reportes-contenido .reportes-filtros {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: end !important;
+    gap: 16px !important;
+
+    margin: 24px 0 22px !important;
+    padding: 18px 20px !important;
+
+    background: #ffffff !important;
+    border: 1px solid #e3e9f1 !important;
+    border-radius: 12px !important;
+}
+
+.reportes-contenido .reportes-filtros label {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+
+    flex: 1 1 220px;
+    min-width: 0;
+
+    margin: 0 !important;
+
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.35px !important;
+
+    color: #52647c !important;
+}
+
+.reportes-contenido .reportes-filtros select {
+    width: 100% !important;
+    height: 43px !important;
+    min-height: 43px !important;
+
+    padding: 0 14px !important;
+
+    background: #f9fbfe !important;
+    color: #243a57 !important;
+
+    border: 1px solid #d7e0ec !important;
+    border-radius: 8px !important;
+
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+
+    outline: none !important;
+    cursor: pointer !important;
+
+    transition: all 0.2s ease !important;
+}
+
+.reportes-contenido .reportes-filtros select:hover {
+    border-color: #9bb2df !important;
+    background: #ffffff !important;
+}
+
+.reportes-contenido .reportes-filtros select:focus {
+    border-color: #365dd6 !important;
+    box-shadow: 0 0 0 3px rgba(54, 93, 214, 0.12) !important;
+}
+
+/* =========================================================
+   CONTENEDOR DE LA TABLA
+   ========================================================= */
+
+.reportes-contenido .reportes-tabla-scroll {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+
+    overflow: auto !important;
+
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+
+    scrollbar-width: thin;
+    scrollbar-color: #b9c7db transparent;
+}
+
+/* TABLA */
+.reportes-contenido .reportes-tabla {
+    width: 100% !important;
+    min-width: 760px !important;
+
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+
+    background: #ffffff !important;
+    table-layout: fixed !important;
+}
+
+/* ANCHOS DE COLUMNAS */
+.reportes-tabla th:nth-child(1) {
+    width: 23%;
+}
+
+.reportes-tabla th:nth-child(2) {
+    width: 27%;
+}
+
+.reportes-tabla th:nth-child(3) {
+    width: 34%;
+}
+
+.reportes-tabla th:nth-child(4) {
+    width: 16%;
+}
+
+/* ENCABEZADOS */
+.reportes-contenido .reportes-tabla thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+
+    padding: 15px 16px !important;
+
+    background: #edf2f8 !important;
+    color: #465c77 !important;
+
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.55px !important;
+    text-transform: uppercase !important;
+
+    text-align: left !important;
+    vertical-align: middle !important;
+
+    border-bottom: 1px solid #dce5f0 !important;
+}
+
+/* CELDAS */
+.reportes-contenido .reportes-tabla tbody td {
+    padding: 15px 16px !important;
+
+    background: transparent !important;
+    color: #334a65 !important;
+
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    line-height: 1.65 !important;
+
+    text-align: left !important;
+    vertical-align: middle !important;
+
+    overflow-wrap: anywhere !important;
+    border-bottom: 1px solid #edf1f6 !important;
+}
+
+/* FILAS */
+.reportes-contenido .reportes-tabla tbody tr {
+    transition: background 0.15s ease;
+}
+
+.reportes-contenido .reportes-tabla tbody tr:nth-child(even) {
+    background: #fafcff !important;
+}
+
+.reportes-contenido .reportes-tabla tbody tr:hover {
+    background: #f0f5ff !important;
+}
+
+.reportes-contenido .reportes-tabla tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* =========================================================
+   BOTON DESCARGAR
+   ========================================================= */
+
+.reportes-contenido > button:not(.reportes-cerrar) {
+    align-self: center !important;
+    flex-shrink: 0 !important;
+
+    min-width: 240px !important;
+    height: 45px !important;
+    min-height: 45px !important;
+
+    margin-top: 24px !important;
+    padding: 0 24px !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    background: #198754 !important;
+    color: #ffffff !important;
+
+    border: 1px solid #198754 !important;
+    border-radius: 9px !important;
+
+    font-family: inherit !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.1px !important;
+
+    cursor: pointer !important;
+
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.18) !important;
+    transition: all 0.2s ease !important;
+}
+
+.reportes-contenido > button:not(.reportes-cerrar):hover {
+    background: #146c43 !important;
+    border-color: #146c43 !important;
+    box-shadow: 0 7px 16px rgba(25, 135, 84, 0.24) !important;
+    transform: translateY(-1px);
+}
+
+/* ACCESIBILIDAD */
+.reportes-contenido button:focus-visible {
+    outline: 3px solid rgba(54, 93, 214, 0.35) !important;
+    outline-offset: 3px !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .modal-reportes:not([hidden]) {
+        padding: 10px !important;
+    }
+
+    .modal-reportes .reportes-contenido {
+        width: 100% !important;
+        height: 92dvh !important;
+        max-height: 92dvh !important;
+
+        padding: 22px 16px !important;
+        border-radius: 12px !important;
+    }
+
+    .reportes-contenido h2 {
+        font-size: 19px !important;
+    }
+
+    .reportes-contenido .reportes-cerrar {
+        top: 16px !important;
+        right: 15px !important;
+    }
+
+    .reportes-contenido .reportes-filtros {
+        margin: 18px 0 16px !important;
+        padding: 14px !important;
+        gap: 12px !important;
+    }
+
+    .reportes-contenido .reportes-filtros label {
+        flex: 1 1 100%;
+    }
+
+    .reportes-contenido .reportes-tabla {
+        min-width: 720px !important;
+    }
+
+    .reportes-contenido > button:not(.reportes-cerrar) {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin-top: 16px !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reportes-contenido,
+    .reportes-contenido * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* TRES FILTROS: MES, CANAL Y ANALISTA */
+
+@media (min-width: 701px) {
+    .reportes-contenido .reportes-filtros {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1.3fr !important;
+        gap: 16px !important;
+        align-items: end !important;
+    }
+
+    .reportes-contenido .reportes-filtros label {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .reportes-contenido .reportes-filtros select {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+}
+/* CORREGIR APERTURA DE VENTANA REPORTES */
+
+#modal-reportes[hidden] {
+    display: none !important;
+}
+
+#modal-reportes:not([hidden]) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(15, 23, 42, 0.65) !important;
+}
+
+#modal-reportes .reportes-contenido {
+    position: relative !important;
+    width: min(1120px, 95vw) !important;
+    max-height: 88vh !important;
+    overflow: hidden !important;
+}
